@@ -31,8 +31,8 @@ client.on("messageCreate", async (message) => {
     
     try {
       const result = await octokit.issues.create({
-        owner: "YOUR_ORG_OR_USERNAME",
-        repo: "YOUR_REPO_NAME",
+        owner: "VIBERS-TEST-ROOM",
+        repo: "Media-Marketing",
         title: issueTitle,
       });
       message.reply(`✅ Issue created: ${result.data.html_url}`);
