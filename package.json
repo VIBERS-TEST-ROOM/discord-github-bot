@@ -1,0 +1,10 @@
+{
+  "name": "discord-github-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "@octokit/rest": "^20.0.2"
+  }
+}
