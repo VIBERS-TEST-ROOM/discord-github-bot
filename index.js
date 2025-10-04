@@ -9,7 +9,7 @@ const DISCORD_GITHUB_TOKEN = process.env.DISCORD_GITHUB_TOKEN;
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
 
 // GitHub client
-const octokit = new Octokit({ auth: GITHUB_TOKEN });
+const octokit = new Octokit({ auth: DISCORD_GITHUB_TOKEN });
 
 // When bot is ready
 client.once("ready", () => {
