@@ -3,7 +3,7 @@ const { Octokit } = require("@octokit/rest");
 
 // Load tokens from environment variables
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const DISCORD_GITHUB_TOKEN = process.env.DISCORD_GITHUB_TOKEN;
 
 // Discord client
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
@@ -31,8 +31,8 @@ client.on("messageCreate", async (message) => {
     
     try {
       const result = await octokit.issues.create({
-        owner: "YOUR_ORG_OR_USERNAME",
-        repo: "YOUR_REPO_NAME",
+        owner: "VIBERS-TEST-ROOM",
+        repo: "Media-Marketing",
         title: issueTitle,
       });
       message.reply(`✅ Issue created: ${result.data.html_url}`);
