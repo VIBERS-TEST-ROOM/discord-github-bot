@@ -1,0 +1,61 @@
+name: "Working Group Report"
+description: "Submit a structured weekly/monthly working group update"
+title: "[Report]: Working Group Name - Date Range"
+labels: ["report", "working-group"]
+body:
+  - type: input
+    id: wg_name
+    attributes:
+      label: "Working Group Name"
+      description: "e.g., Governance, Media & Storytelling, Community Activation"
+      placeholder: "Enter WG name"
+    validations:
+      required: true
+
+  - type: input
+    id: time_period
+    attributes:
+      label: "Time Period"
+      description: "Enter reporting duration"
+      placeholder: "DD/MM/YYYY – DD/MM/YYYY"
+    validations:
+      required: true
+
+  - type: input
+    id: update_authors
+    attributes:
+      label: "Update Author(s)"
+      description: "Names of WG Lead(s) or contributor(s) compiling this update"
+      placeholder: "Name(s)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: highlights
+    attributes:
+      label: "Highlights"
+      description: "Summarize key wins, milestones, or announcements in 2–3 bullet points."
+      placeholder: "- [ ] Example: Completed onboarding guide draft\n- [ ] Example: Published governance charter update"
+    validations:
+      required: true
+
+  - type: textarea
+    id: tasks_completed
+    attributes:
+      label: "Tasks Completed"
+      description: "List tasks completed during this period, with optional links."
+      placeholder: "- [x] Task Title → Status → [Link]"
+    validations:
+      required: false
+
+  - type: textarea
+    id: tasks_in_progress
+    attributes:
+      label: "Tasks In Progress"
+      description: "List ongoing tasks and expected timelines."
+      placeholder: "- [ ] Task Title → Current Status → Expected Completion Date"
+    validations:
+      required: false
+
+  - type: textarea
+    id: blocker
