@@ -1,4 +1,5 @@
-const { Client, GatewayIntentBits } = require("discord.js");
+// index.js
+const { Client, GatewayIntentBits, Collection } = require("discord.js");
 const { Octokit } = require("@octokit/rest");
 const fs = require("fs");
 const path = require("path");
@@ -8,50 +9,51 @@ const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
 const DISCORD_GITHUB_TOKEN = process.env.DISCORD_GITHUB_TOKEN;
 
 // Discord client
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
 
 // GitHub client
 const octokit = new Octokit({ auth: DISCORD_GITHUB_TOKEN });
 
-// Load channel mappings
-const channelsConfig = require("./config/channels.json");
+// Command collection
+client.commands = new Collection();
 
-// Load commands dynamically from commands folder
-client.commands = new Map();
+// Load command files dynamically
 const commandsPath = path.join(__dirname, "commands");
 fs.readdirSync(commandsPath).forEach(file => {
   if (file.endsWith(".js")) {
-    const command = require(path.join(commandsPath, file));
-    client.commands.set(command.name, command);
+    const command = require(`./commands/${file}`);
+    client.commands.set(command.data.name, command);
   }
 });
 
-// When bot is ready
+// Ready event
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
-// Handle incoming messages
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
+// Interaction handler (slash commands)
+client.on("interactionCreate", async interaction => {
+  if (!interaction.isCommand()) return;
 
-  const prefix = "!"; // change to your preferred prefix
-  if (!message.content.startsWith(prefix)) return;
-
-  const args = message.content.slice(prefix.length).trim().split(/ +/);
-  const commandName = args.shift().toLowerCase();
-
-  // Check if command exists
-  const command = client.commands.get(commandName);
+  const command = client.commands.get(interaction.commandName);
   if (!command) return;
 
   try {
-    await command.execute({ message, args, client, octokit, channelsConfig });
+    await command.execute(interaction, octokit);
   } catch (error) {
     console.error(error);
-    message.reply("⚠️ Something went wrong executing that command.");
+    await interaction.reply({
+      content: "⚠️ There was an error while executing this command.",
+      ephemeral: true
+    });
   }
 });
 
-// Login bot
+// Login Discord
 client.login(DISCORD_TOKEN);
