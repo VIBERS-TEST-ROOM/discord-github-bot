@@ -1,0 +1,104 @@
+name: 📝 Proposal
+description: Submit a new proposal for the Working Group to review
+title: "[Proposal]: "
+labels: ["proposal"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Proposal Title
+      placeholder: Concise and descriptive title
+    validations:
+      required: true
+
+  - type: input
+    id: wg
+    attributes:
+      label: Working Group (If submitted by a WG)
+      placeholder: Name of the WG submitting the proposal
+    validations:
+      required: false
+
+  - type: input
+    id: date
+    attributes:
+      label: Date Submitted
+      placeholder: DD/MM/YYYY
+    validations:
+      required: true
+
+  - type: textarea
+    id: author
+    attributes:
+      label: Proposal Author(s) and Background
+      description: Provide background information or context for the proposal.
+      placeholder: ex. Gneric (ORG WG Lead) – active contributor in DAOs
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Outline the specific actions, initiatives, or changes being proposed.
+      placeholder: A short overview of the proposal...
+    validations:
+      required: true
+
+  - type: textarea
+    id: objectives
+    attributes:
+      label: Objectives, Proposal Context and Impact
+      description: Describe expected impact and benefits to the organization/community.
+      placeholder: ex. Strengthening governance, improving transparency...
+    validations:
+      required: true
+
+  - type: textarea
+    id: deliverables
+    attributes:
+      label: Deliverables
+      description: List the tangible outcomes of this proposal.
+      placeholder: "- Deliverable 1 → Expected Completion Date\n- Deliverable 2 → Expected Completion Date"
+    validations:
+      required: true
+
+  - type: textarea
+    id: budget
+    attributes:
+      label: Budget & Resources (If applicable)
+      description: Provide budget details, breakdowns, and allocations.
+      placeholder: "- Budget Requested: $____\n- Resource Needs: (people, tools, support, etc.)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: timeline
+    attributes:
+      label: Timeline
+      description: Define milestones with descriptions and expected completion dates.
+      placeholder: |
+        | Milestone | Description | Expected Completion |
+        |-----------|-------------|----------------------|
+        | Milestone 1 | … | DD/MM/YYYY |
+        | Milestone 2 | … | DD/MM/YYYY |
+    validations:
+      required: false
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks & Dependencies
+      description: Outline potential risks and how to mitigate them.
+      placeholder: "- Risk 1 → Mitigation\n- Risk 2 → Mitigation"
+    validations:
+      required: false
+
+  - type: textarea
+    id: appendix
+    attributes:
+      label: Appendix (optional)
+      description: Add additional resources, charts, or references.
+      placeholder: Supporting docs, charts, or links
+    validations:
+      required: false
