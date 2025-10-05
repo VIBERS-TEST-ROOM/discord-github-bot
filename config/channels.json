@@ -1,0 +1,12 @@
+const channelsMap = {
+  general: {
+    channelId: process.env.EXPERIMENTAL_CHANNEL,
+    repoOwner: "VIBERS-TEST-ROOM",
+    repoName: "Operations-Research-Governance-WG"
+  },
+  bounties: {
+    channelId: process.env.WG_NOTIFICATIONS,
+    repoOwner: "VIBERS-TEST-ROOM",
+    repoName: "Media-Marketing"
+  }
+};
