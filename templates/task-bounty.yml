@@ -1,0 +1,104 @@
+name: "Task or Bounty Template"
+description: "Template for defining WG deliverables, assignments, and bounties."
+title: "[Task]: WG Name and Title"
+labels: ["task", "bounty", "deliverable"]
+body:
+  - type: input
+    id: task_title
+    attributes:
+      label: "Task Title"
+      description: "Enter WG name and title."
+      placeholder: "WG Name - Task Title"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Provide a clear description of the deliverable."
+      placeholder: "Explain the deliverable here..."
+    validations:
+      required: true
+
+  - type: input
+    id: bounty
+    attributes:
+      label: "Bounty"
+      description: "Specify the bounty amount (stable equivalent)."
+      placeholder: "$___"
+    validations:
+      required: false
+
+  - type: input
+    id: start_date
+    attributes:
+      label: "Start Date"
+      placeholder: "DD/MM/YYYY"
+    validations:
+      required: false
+
+  - type: input
+    id: due_date
+    attributes:
+      label: "Due Date"
+      placeholder: "DD/MM/YYYY"
+    validations:
+      required: false
+
+  - type: input
+    id: assigned_to
+    attributes:
+      label: "Assigned To"
+      description: "Enter name / handle / wallet address."
+      placeholder: "@username or wallet address"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: open_bounty
+    attributes:
+      label: "Open Bounty"
+      description: "Is this task open for bounty?"
+      options:
+        - "Yes"
+        - "No"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: status
+    attributes:
+      label: "Status"
+      options:
+        - label: "Open"
+        - label: "In Progress"
+        - label: "Completed"
+
+  - type: textarea
+    id: submission_instructions
+    attributes:
+      label: "Submission Instructions"
+      description: "How should the work be submitted? (e.g., GitHub PR, file upload, link)"
+      placeholder: "Provide submission method..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: review_process
+    attributes:
+      label: "Review Process"
+      description: "Specify reviewers (WG Lead, designated reviewer, or poll)."
+      placeholder: "Reviewer(s): ..."
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: completion_criteria
+    attributes:
+      label: "Completion Criteria"
+      description: "Tick all that apply when the task is complete."
+      options:
+        - label: "Criteria 1"
+        - label: "Criteria 2"
+        - label: "Criteria 3"
