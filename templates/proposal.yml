@@ -1,6 +1,6 @@
 name: 📝 Proposal
 description: Submit a new proposal for the Working Group to review
-title: "[Proposal]: "
+title: "[Proposal]:"
 labels: ["proposal"]
 body:
   - type: input
