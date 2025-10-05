@@ -5,7 +5,7 @@ const { getTemplate } = require("./templates"); // Import template service
 const DISCORD_GITHUB_TOKEN = process.env.DISCORD_GITHUB_TOKEN;
 
 // Initialize Octokit client
-const octokit = new Octokit({ auth: GITHUB_TOKEN });
+const octokit = new Octokit({ auth: DISCORD_GITHUB_TOKEN });
 
 /**
  * Create a new GitHub issue in the specified repo
