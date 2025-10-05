@@ -1,0 +1,81 @@
+name: Workflow Documentation
+description: Create or update a workflow document for a Working Group
+title: "[Workflow]: "
+labels: ["workflow"]
+body:
+  - type: input
+    id: document_title
+    attributes:
+      label: Document Title
+      placeholder: Workflow Name
+    validations:
+      required: true
+
+  - type: input
+    id: author
+    attributes:
+      label: Author
+      placeholder: Your Name
+    validations:
+      required: true
+
+  - type: input
+    id: date
+    attributes:
+      label: Date
+      placeholder: DD/MM/YYYY
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: v1.0 or update number
+    validations:
+      required: true
+
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Purpose
+      description: Explain the purpose of this workflow.
+      placeholder: Purpose of this workflow...
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Describe the scope (which teams or processes it applies to).
+      placeholder: Applies to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: process_overview
+    attributes:
+      label: Process Overview
+      description: Step-by-step breakdown of the workflow.
+      placeholder: "1. Step one\n2. Step two\n3. Step three"
+    validations:
+      required: true
+
+  - type: textarea
+    id: roles_responsibilities
+    attributes:
+      label: Roles & Responsibilities
+      description: Specify which roles are responsible for which actions.
+      placeholder: "Role A → Action X\nRole B → Action Y"
+    validations:
+      required: true
+
+  - type: textarea
+    id: tools
+    attributes:
+      label: Tools (If applicable)
+      description: List the tools/platforms used in this workflow.
+      placeholder: GitHub, Discord, Snapshot...
+    validations:
+    required: true
