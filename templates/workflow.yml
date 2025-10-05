@@ -78,4 +78,4 @@ body:
       description: List the tools/platforms used in this workflow.
       placeholder: GitHub, Discord, Snapshot...
     validations:
-    required: true
+      required: true
