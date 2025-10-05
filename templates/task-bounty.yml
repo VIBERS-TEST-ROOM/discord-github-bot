@@ -1,6 +1,6 @@
 name: "Task or Bounty Template"
 description: "Template for defining WG deliverables, assignments, and bounties."
-title: "[Task]: WG Name and Title"
+title: "[Bounty]: WG Name and Title"
 labels: ["task", "bounty", "deliverable"]
 body:
   - type: input
