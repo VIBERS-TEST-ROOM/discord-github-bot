@@ -1,0 +1,69 @@
+name: 📋 Meeting Notes
+description: Document meeting notes for a Working Group
+title: "[Meeting]: "
+labels: ["meeting-notes"]
+body:
+  - type: input
+    id: title
+    attributes:
+      label: Title
+      placeholder: Enter WG/Meeting Title
+    validations:
+      required: true
+
+  - type: input
+    id: author
+    attributes:
+      label: Author
+      placeholder: Note Taker’s Name
+    validations:
+      required: true
+
+  - type: input
+    id: date
+    attributes:
+      label: Date
+      placeholder: DD/MM/YYYY
+    validations:
+      required: true
+
+  - type: input
+    id: meeting_number
+    attributes:
+      label: Meeting Number
+      placeholder: Update number
+    validations:
+      required: false
+
+  - type: textarea
+    id: attendees
+    attributes:
+      label: Attendees
+      description: List all participants.
+      placeholder: Name 1, Name 2, Name 3...
+    validations:
+      required: true
+
+  - type: textarea
+    id: agenda
+    attributes:
+      label: Agenda
+      description: List agenda items discussed in the meeting.
+      placeholder: "- Agenda item 1\n- Agenda item 2"
+    validations:
+      required: true
+
+  - type: textarea
+    id: discussion_notes
+    attributes:
+      label: Discussion Notes
+      description: Summarize discussions, decisions, and key points for each agenda item.
+      placeholder: Key points and highlights...
+    validations:
+      required: true
+
+  - type: textarea
+    id: decisions
+    attributes:
+      label: Decisions Made
+      description
