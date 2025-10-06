@@ -1,62 +1,42 @@
 // commands/issue.js
-const { Octokit } = require("@octokit/rest");
-const { getTemplate } = require("../services/templates");
-const { sendEphemeral } = require("../utils/messageUtils");
-const channelsConfig = require("../config/channels.json");
-
-// GitHub client
-const octokit = new Octokit({ auth: process.env.DISCORD_GITHUB_TOKEN });
+const { SlashCommandBuilder } = require("discord.js");
+const { createIssue } = require("../services/github");
 
 module.exports = {
-  name: "issue",
-  description: "Create a GitHub issue from Discord with template support",
-  async execute(message, args) {
-    if (!args || args.length === 0) {
-      return sendEphemeral(message, "⚠️ You must provide a template name or title|description.");
-    }
+  data: new SlashCommandBuilder()
+    .setName("issue")
+    .setDescription("Create a GitHub issue")
+    .addStringOption(option =>
+      option
+        .setName("content")
+        .setDescription("Title and description separated by |, e.g. 'Title | Description'")
+        .setRequired(true)
+    ),
+  async execute(interaction) {
+    const input = interaction.options.getString("content");
 
-    const channelId = message.channel.id;
-    const repoMapping = channelsConfig[channelId];
+    // Split into title and body
+    const [rawTitle, rawBody] = input.split("|").map(s => s.trim());
+    const title = rawTitle || "New issue from Discord";
+    const body = rawBody || "No description provided.";
 
-    if (!repoMapping) {
-      return sendEphemeral(message, "⚠️ No GitHub repository mapped to this channel.");
-    }
-
-    const { owner, repo } = repoMapping;
-
-    // Determine if the user provided a template name
-    let title, description;
-
-    if (args[0].startsWith("template:")) {
-      const templateName = args[0].replace("template:", "").trim();
-      const template = getTemplate(templateName);
-
-      if (!template) {
-        return sendEphemeral(message, `⚠️ Template "${templateName}" not found.`);
-      }
-
-      title = template.title.replace("{{user}}", message.author.username);
-      description = template.body.replace("{{user}}", message.author.username);
-    } else {
-      // Expect format: title|description
-      if (!args.join(" ").includes("|")) {
-        return sendEphemeral(message, "⚠️ Provide issue in format: `Title | Description`");
-      }
-      [title, description] = args.join(" ").split("|").map((s) => s.trim());
-    }
+    await interaction.deferReply({ ephemeral: true });
 
     try {
-      const result = await octokit.issues.create({
-        owner,
-        repo,
+      const result = await createIssue({
+        channelId: interaction.channelId,
         title,
-        body: description,
+        body,
       });
 
-      message.reply(`✅ Issue created: ${result.data.html_url}`);
+      await interaction.editReply({
+        content: `✅ Issue created: ${result.data.html_url}`,
+      });
     } catch (err) {
       console.error(err);
-      sendEphemeral(message, "⚠️ Failed to create the GitHub issue.");
+      await interaction.editReply({
+        content: "⚠️ Failed to create issue.",
+      });
     }
   },
 };
