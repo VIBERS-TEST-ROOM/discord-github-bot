@@ -1,4 +1,14 @@
-"scripts": {
-  "start": "node index.js",
-  "deploy": "node deploy-commands.js"
+{
+  "name": "discord-github-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.0.0",
+    "@octokit/rest": "^20.0.0",
+    "dotenv": "^16.0.0"
+  }
 }
