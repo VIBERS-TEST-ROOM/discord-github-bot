@@ -1,4 +1,4 @@
 "scripts": {
-  "deploy": "node deploy-commands.js",
-  "start": "node index.js"
+  "start": "node index.js",
+  "deploy": "node deploy-commands.js"
 }
