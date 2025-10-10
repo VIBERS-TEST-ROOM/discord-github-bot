@@ -1,25 +1,15 @@
 const fs = require("fs");
 const path = require("path");
+const yaml = require("js-yaml");
 
-// Path to your templates folder inside the bot repo
-const templatesDir = path.join(__dirname, "../templates");
+const TEMPLATES_DIR = path.join(__dirname, "../templates");
 
-function loadTemplates() {
-  const templates = {};
-  const files = fs.readdirSync(templatesDir);
-
-  files.forEach((file) => {
-    if (file.endsWith(".yml") || file.endsWith(".yaml")) {
-      const content = fs.readFileSync(path.join(templatesDir, file), "utf8");
-      // The template key is the filename without extension
-      const key = path.basename(file, path.extname(file));
-      templates[key] = content;
-    }
+async function getTemplates() {
+  const files = fs.readdirSync(TEMPLATES_DIR).filter(f => f.endsWith(".yml") || f.endsWith(".yaml"));
+  return files.map(file => {
+    const content = yaml.load(fs.readFileSync(path.join(TEMPLATES_DIR, file), "utf8"));
+    return { name: content.name || file.replace(".yml", ""), description: content.about || "No description" };
   });
-
-  return templates;
 }
 
-module.exports = {
-  loadTemplates,
-};
+module.exports = { getTemplates };
