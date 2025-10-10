@@ -1,13 +1,4 @@
-{
-  "name": "discord-github-bot",
-  "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "dependencies": {
-    "discord.js": "^14.15.3",
-    "dotenv": "^16.3.1"
-  }
+"scripts": {
+  "deploy": "node deploy-commands.js",
+  "start": "node index.js"
 }
