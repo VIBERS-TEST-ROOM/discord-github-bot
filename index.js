@@ -1,47 +1,56 @@
-const { Client, GatewayIntentBits } = require("discord.js");
-const { Octokit } = require("@octokit/rest");
+// index.js
+import "dotenv/config";
+import { Client, GatewayIntentBits, Collection } from "discord.js";
+import { Octokit } from "@octokit/rest";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// Load tokens from environment variables
-const DISCORD_TOKEN = process.env.DISCORD_TOKEN;
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+// Fix __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// Discord client
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+// Initialize Discord + GitHub clients
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages],
+});
 
-// GitHub client
-const octokit = new Octokit({ auth: GITHUB_TOKEN });
+const octokit = new Octokit({ auth: process.env.DISCORD_GITHUB_TOKEN });
 
-// When bot is ready
+// Load all commands from /commands
+client.commands = new Collection();
+const commandsPath = path.join(__dirname, "commands");
+const commandFiles = fs.readdirSync(commandsPath).filter((file) => file.endsWith(".js"));
+
+for (const file of commandFiles) {
+  const { data, execute } = await import(`./commands/${file}`);
+  client.commands.set(data.name, { data, execute });
+}
+
+// Bot ready
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user.tag}`);
 });
 
-// Simple test command
-client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
+// Handle slash command interactions
+client.on("interactionCreate", async (interaction) => {
+  if (!interaction.isCommand()) return;
 
-  // Just a ping test
-  if (message.content === "!ping") {
-    message.reply("🏓 Pong!");
-  }
+  const command = client.commands.get(interaction.commandName);
+  if (!command) return;
 
-  // Example: create GitHub issue
-  if (message.content.startsWith("!issue")) {
-    const issueTitle = message.content.replace("!issue", "").trim() || "New issue from Discord";
-    
-    try {
-      const result = await octokit.issues.create({
-        owner: "VIBERS-TEST-ROOM",
-        repo: "Media-Marketing",
-        title: issueTitle,
-      });
-      message.reply(`✅ Issue created: ${result.data.html_url}`);
-    } catch (err) {
-      console.error(err);
-      message.reply("⚠️ Failed to create issue.");
+  try {
+    await command.execute(interaction, octokit);
+  } catch (error) {
+    console.error("❌ Command execution error:", error);
+    if (interaction.replied || interaction.deferred) {
+      await interaction.followUp({ content: "⚠️ There was an error executing this command.", ephemeral: true });
+    } else {
+      await interaction.reply({ content: "⚠️ There was an error executing this command.", ephemeral: true });
     }
   }
 });
 
-// Login bot
-client.login(DISCORD_TOKEN);
+// Login the bot
+client.login(process.env.DISCORD_TOKEN);
+
