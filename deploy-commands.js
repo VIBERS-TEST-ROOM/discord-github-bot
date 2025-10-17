@@ -1,13 +1,12 @@
-// deploy-commands.js (ESM version)
+// deploy-commands.js
 import { REST, Routes } from "discord.js";
 import fs from "fs";
 import path from "path";
-import dotenv from "dotenv";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-// Support __dirname in ESM
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -18,21 +17,24 @@ const GUILD_ID = process.env.GUILD_ID;
 const commands = [];
 const commandsPath = path.join(__dirname, "commands");
 
-// Load all slash commands
-for (const file of fs.readdirSync(commandsPath).filter(f => f.endsWith(".js"))) {
-  const command = await import(`./commands/${file}`);
-  commands.push(command.default.data.toJSON());
+const commandFiles = fs.readdirSync(commandsPath).filter(f => f.endsWith(".js"));
+for (const file of commandFiles) {
+  const { default: command } = await import(`./commands/${file}`);
+  if (!command || !command.data) {
+    console.warn(`⚠️ Skipping ${file} — no command data found.`);
+    continue;
+  }
+  commands.push(command.data.toJSON());
 }
 
 const rest = new REST({ version: "10" }).setToken(TOKEN);
 
 (async () => {
   try {
-    console.log(`🚀 Deploying ${commands.length} commands...`);
+    console.log(`📁 Loaded ${commands.length} slash commands.`);
     await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), { body: commands });
-    console.log("✅ Slash commands deployed.");
+    console.log("✅ Slash commands deployed successfully!");
   } catch (err) {
     console.error("❌ Failed to deploy commands:", err);
   }
 })();
-
