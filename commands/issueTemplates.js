@@ -1,61 +1,66 @@
 // commands/issueTemplates.js
-import { SlashCommandBuilder } from "discord.js";
-import { loadTemplates, getTemplateByName } from "../services/templates.js";
+import { SlashCommandBuilder, ActionRowBuilder, StringSelectMenuBuilder } from "discord.js";
+import { listTemplates, getTemplateContent } from "../services/templates.js";
 import { createIssue } from "../services/github.js";
 
-export const data = new SlashCommandBuilder()
-  .setName("issue_template")
-  .setDescription("Create a GitHub issue using a saved template.")
-  .addStringOption(option =>
-    option
-      .setName("template")
-      .setDescription("Choose a template (e.g. proposal, bounty, meeting-notes)")
-      .setRequired(true)
-  )
-  .addStringOption(option =>
-    option
-      .setName("title")
-      .setDescription("The title for your issue")
-      .setRequired(true)
-  )
-  .addStringOption(option =>
-    option
-      .setName("details")
-      .setDescription("Additional information or body text for your issue")
-      .setRequired(false)
-  );
+export default {
+  data: new SlashCommandBuilder()
+    .setName("issue_templates")
+    .setDescription("Browse and create issues using available GitHub templates."),
 
-export async function execute(interaction) {
-  const templateName = interaction.options.getString("template");
-  const title = interaction.options.getString("title");
-  const extraDetails = interaction.options.getString("details") || "";
+  async execute(interaction) {
+    await interaction.deferReply({ ephemeral: true });
 
-  await interaction.deferReply({ ephemeral: true });
+    try {
+      const templates = listTemplates();
 
-  try {
-    const availableTemplates = loadTemplates();
-    const match = availableTemplates.find(t => t.name === templateName);
+      if (!templates.length) {
+        await interaction.editReply("⚠️ No templates found in the bot repository.");
+        return;
+      }
 
-    if (!match) {
-      await interaction.editReply(
-        `⚠️ Template "${templateName}" not found. Available templates: ${availableTemplates.map(t => t.name).join(", ")}`
-      );
-      return;
+      // Create a select menu for available templates
+      const options = templates.map(t => ({
+        label: t.replace(".yml", ""),
+        value: t,
+      }));
+
+      const menu = new StringSelectMenuBuilder()
+        .setCustomId("select-template")
+        .setPlaceholder("Select a template to create an issue")
+        .addOptions(options);
+
+      const row = new ActionRowBuilder().addComponents(menu);
+
+      await interaction.editReply({
+        content: "🧩 Choose a template to start your issue:",
+        components: [row],
+      });
+
+      // Collector for user template selection
+      const collector = interaction.channel.createMessageComponentCollector({
+        filter: i => i.user.id === interaction.user.id,
+        time: 60_000,
+      });
+
+      collector.on("collect", async i => {
+        const templateName = i.values[0];
+        const template = getTemplateContent(templateName);
+
+        if (!template) {
+          await i.reply({ content: "⚠️ Template not found!", ephemeral: true });
+          return;
+        }
+
+        await i.reply({
+          content: `📝 Using **${templateName.replace(".yml", "")}** template.\n\nPlease enter your issue details in this format:\n\`/issue content: Title | Description\``,
+          ephemeral: true,
+        });
+      });
+    } catch (error) {
+      console.error("❌ Template command error:", error);
+      await interaction.editReply("⚠️ Failed to load issue templates.");
     }
+  },
+};
 
-    const templateBody = getTemplateByName(templateName);
-    const finalBody = `${templateBody}\n\n---\n**Additional Details:**\n${extraDetails}`;
-
-    // Create issue in correct repo based on channel
-    const issue = await createIssue({
-      channelId: interaction.channelId,
-      title,
-      body: finalBody,
-    });
-
-    await interaction.editReply(`✅ Issue created successfully: ${issue.data.html_url}`);
-  } catch (error) {
-    console.error("❌ Error creating issue from template:", error);
-    await interaction.editReply("⚠️ Failed to create issue using template.");
-  }
-}
