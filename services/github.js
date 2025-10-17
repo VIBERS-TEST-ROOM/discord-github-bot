@@ -72,4 +72,13 @@ export async function addComment({ channelId, issueNumber, comment }) {
     throw error;
   }
 }
+export async function getIssue({ owner, repo, issue_number }) {
+  try {
+    const issue = await octokit.issues.get({ owner, repo, issue_number });
+    return issue.data;
+  } catch (err) {
+    console.error("❌ Error fetching issue:", err);
+    throw err;
+  }
+}
 
