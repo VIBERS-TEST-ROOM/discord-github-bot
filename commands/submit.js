@@ -1,39 +1,54 @@
+// commands/submit.js
 import { SlashCommandBuilder } from "discord.js";
-import { submitToIssue } from "../services/github.js";
+import { createComment } from "../services/github.js";
+import { validateBountyOpen } from "../utils/validation.js";
 
-export const data = new SlashCommandBuilder()
-  .setName("submit")
-  .setDescription("Submit work for a bounty or issue.")
-  .addStringOption(option =>
-    option
-      .setName("bounty")
-      .setDescription("The GitHub issue number or title.")
-      .setRequired(true)
-  )
-  .addStringOption(option =>
-    option
-      .setName("submission")
-      .setDescription("Your work: link, notes, etc.")
-      .setRequired(true)
-  );
+export default {
+  data: new SlashCommandBuilder()
+    .setName("submit")
+    .setDescription("Submit your bounty entry or contribution.")
+    .addStringOption(option =>
+      option
+        .setName("bounty_id")
+        .setDescription("The GitHub issue number or bounty ID")
+        .setRequired(true)
+    )
+    .addStringOption(option =>
+      option
+        .setName("submission")
+        .setDescription("Your submission (link, description, or note)")
+        .setRequired(true)
+    ),
 
-export async function execute(interaction) {
-  const bounty = interaction.options.getString("bounty");
-  const submission = interaction.options.getString("submission");
+  async execute(interaction) {
+    const bountyId = interaction.options.getString("bounty_id");
+    const submission = interaction.options.getString("submission");
+    const channelId = interaction.channelId;
+    const discordUser = interaction.user.tag;
 
-  await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ ephemeral: true });
 
-  try {
-    const comment = await submitToIssue({
-      channelId: interaction.channelId,
-      bounty,
-      submission,
-      user: interaction.user.username,
-    });
+    try {
+      // 1️⃣ Validate if bounty is open
+      const isOpen = await validateBountyOpen(channelId, bountyId);
+      if (!isOpen) {
+        await interaction.editReply("⚠️ This bounty is closed or invalid.");
+        return;
+      }
 
-    await interaction.editReply(`✅ Submission added: ${comment.data.html_url}`);
-  } catch (err) {
-    console.error("❌ Error submitting:", err);
-    await interaction.editReply("⚠️ Failed to submit work.");
-  }
-}
+      // 2️⃣ Post comment to GitHub issue
+      const commentBody = `💬 **Submission by:** ${discordUser}\n\n${submission}`;
+      const comment = await createComment({
+        channelId,
+        issueNumber: bountyId,
+        body: commentBody,
+      });
+
+      await interaction.editReply(`✅ Submission posted successfully!\n🔗 ${comment.data.html_url}`);
+    } catch (err) {
+      console.error("❌ Submission error:", err);
+      await interaction.editReply("⚠️ Failed to post your submission. Please try again.");
+    }
+  },
+};
+
