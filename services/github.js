@@ -3,39 +3,34 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// ---- Resolve Directory Paths ----
+// Setup for ESM paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ---- Initialize GitHub Client ----
-const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-if (!GITHUB_TOKEN) {
-  console.error("❌ Missing GITHUB_TOKEN in environment variables.");
-  process.exit(1);
-}
-
-export const octokit = new Octokit({ auth: GITHUB_TOKEN });
-
-// ---- Load Channel-to-Repo Mapping ----
-// Instead of using "assert { type: 'json' }", we’ll load JSON manually.
+// Load channel → repo mappings
 const channelsPath = path.join(__dirname, "../config/channels.json");
 let channels = {};
-
 try {
-  const fileData = fs.readFileSync(channelsPath, "utf-8");
-  channels = JSON.parse(fileData);
-  console.log("📁 Loaded channel → repo mappings:", Object.keys(channels).length);
+  channels = JSON.parse(fs.readFileSync(channelsPath, "utf8"));
+  console.log(`📁 Loaded channel → repo mappings: ${Object.keys(channels).length}`);
 } catch (err) {
-  console.error("⚠️ Could not load config/channels.json:", err);
+  console.error("⚠️ Could not load channels.json:", err);
 }
 
-// ---- Core Function: Create Issue ----
+// Initialize GitHub client
+const octokit = new Octokit({
+  auth: process.env.GITHUB_TOKEN,
+});
+
+/**
+ * Create a new GitHub issue based on Discord channel mapping
+ */
 export async function createIssue({ channelId, title, body }) {
   try {
-    const repoInfo = channels[channelId];
-    if (!repoInfo) throw new Error(`No repository mapping found for channel ID ${channelId}`);
+    const repoFullName = channels[channelId];
+    if (!repoFullName) throw new Error(`No GitHub repo mapped for channel ${channelId}`);
 
-    const [owner, repo] = repoInfo.split("/");
+    const [owner, repo] = repoFullName.split("/");
     const issue = await octokit.issues.create({
       owner,
       repo,
@@ -43,38 +38,43 @@ export async function createIssue({ channelId, title, body }) {
       body,
     });
 
-    console.log(`✅ Created issue: ${issue.data.html_url}`);
+    console.log(`✅ Created issue in ${repoFullName}: #${issue.data.number}`);
     return issue;
-  } catch (error) {
-    console.error("❌ Error creating issue:", error);
-    throw error;
+  } catch (err) {
+    console.error("❌ Failed to create issue:", err);
+    throw err;
   }
 }
 
-// ---- Core Function: Add Comment to Issue ----
-export async function addComment({ channelId, issueNumber, comment }) {
+/**
+ * Add a comment to an existing issue (used for bounty submissions)
+ */
+export async function createComment({ owner, repo, issue_number, body }) {
   try {
-    const repoInfo = channels[channelId];
-    if (!repoInfo) throw new Error(`No repository mapping found for channel ID ${channelId}`);
-
-    const [owner, repo] = repoInfo.split("/");
-    const response = await octokit.issues.createComment({
+    const comment = await octokit.issues.createComment({
       owner,
       repo,
-      issue_number: issueNumber,
-      body: comment,
+      issue_number,
+      body,
     });
-
-    console.log(`💬 Added comment to issue #${issueNumber}`);
-    return response;
-  } catch (error) {
-    console.error("❌ Error adding comment:", error);
-    throw error;
+    console.log(`💬 Added comment to issue #${issue_number} in ${repo}`);
+    return comment.data;
+  } catch (err) {
+    console.error("❌ Error creating comment:", err);
+    throw err;
   }
 }
+
+/**
+ * Fetch a single GitHub issue (used for validation checks)
+ */
 export async function getIssue({ owner, repo, issue_number }) {
   try {
-    const issue = await octokit.issues.get({ owner, repo, issue_number });
+    const issue = await octokit.issues.get({
+      owner,
+      repo,
+      issue_number,
+    });
     return issue.data;
   } catch (err) {
     console.error("❌ Error fetching issue:", err);
@@ -82,3 +82,4 @@ export async function getIssue({ owner, repo, issue_number }) {
   }
 }
 
+export default { createIssue, createComment, getIssue };
