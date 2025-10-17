@@ -1,63 +1,75 @@
-// services/github.js
 import { Octokit } from "@octokit/rest";
-import channels from "../config/channels.json" assert { type: "json" };
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const octokit = new Octokit({
-  auth: process.env.GITHUB_TOKEN,
-});
+// ---- Resolve Directory Paths ----
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-/**
- * Resolve GitHub repo info from Discord channel ID.
- * @param {string} channelId
- * @returns {{ owner: string, repo: string }}
- */
-function resolveRepo(channelId) {
-  const repoFull = channels[channelId];
-  if (!repoFull) throw new Error(`No repo mapping found for channel ${channelId}`);
-  const [owner, repo] = repoFull.split("/");
-  return { owner, repo };
+// ---- Initialize GitHub Client ----
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+if (!GITHUB_TOKEN) {
+  console.error("❌ Missing GITHUB_TOKEN in environment variables.");
+  process.exit(1);
 }
 
-/**
- * Create a new GitHub issue
- */
+export const octokit = new Octokit({ auth: GITHUB_TOKEN });
+
+// ---- Load Channel-to-Repo Mapping ----
+// Instead of using "assert { type: 'json' }", we’ll load JSON manually.
+const channelsPath = path.join(__dirname, "../config/channels.json");
+let channels = {};
+
+try {
+  const fileData = fs.readFileSync(channelsPath, "utf-8");
+  channels = JSON.parse(fileData);
+  console.log("📁 Loaded channel → repo mappings:", Object.keys(channels).length);
+} catch (err) {
+  console.error("⚠️ Could not load config/channels.json:", err);
+}
+
+// ---- Core Function: Create Issue ----
 export async function createIssue({ channelId, title, body }) {
-  const { owner, repo } = resolveRepo(channelId);
-  const result = await octokit.issues.create({
-    owner,
-    repo,
-    title,
-    body,
-  });
-  return result;
+  try {
+    const repoInfo = channels[channelId];
+    if (!repoInfo) throw new Error(`No repository mapping found for channel ID ${channelId}`);
+
+    const [owner, repo] = repoInfo.split("/");
+    const issue = await octokit.issues.create({
+      owner,
+      repo,
+      title,
+      body,
+    });
+
+    console.log(`✅ Created issue: ${issue.data.html_url}`);
+    return issue;
+  } catch (error) {
+    console.error("❌ Error creating issue:", error);
+    throw error;
+  }
 }
 
-/**
- * Fetch an existing GitHub issue
- */
-export async function getIssue(channelId, issueNumber) {
-  const { owner, repo } = resolveRepo(channelId);
-  const { data } = await octokit.issues.get({
-    owner,
-    repo,
-    issue_number: issueNumber,
-  });
-  return data;
-}
+// ---- Core Function: Add Comment to Issue ----
+export async function addComment({ channelId, issueNumber, comment }) {
+  try {
+    const repoInfo = channels[channelId];
+    if (!repoInfo) throw new Error(`No repository mapping found for channel ID ${channelId}`);
 
-/**
- * Add a comment to an existing GitHub issue
- */
-export async function addComment(channelId, issueNumber, commentBody) {
-  const { owner, repo } = resolveRepo(channelId);
-  const { data } = await octokit.issues.createComment({
-    owner,
-    repo,
-    issue_number: issueNumber,
-    body: commentBody,
-  });
-  return data;
-}
+    const [owner, repo] = repoInfo.split("/");
+    const response = await octokit.issues.createComment({
+      owner,
+      repo,
+      issue_number: issueNumber,
+      body: comment,
+    });
 
-console.log("✅ GitHub service initialized.");
+    console.log(`💬 Added comment to issue #${issueNumber}`);
+    return response;
+  } catch (error) {
+    console.error("❌ Error adding comment:", error);
+    throw error;
+  }
+}
 
