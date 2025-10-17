@@ -1,20 +1,17 @@
-// utils/validation.js
 import { getIssue } from "../services/github.js";
 
 /**
- * Validates if a bounty (GitHub issue) exists and is open.
- * @param {string} channelId Discord channel ID (maps to repo)
- * @param {string|number} issueNumber GitHub issue number
- * @returns {Promise<{isOpen: boolean, issue?: object}>}
+ * Check if a bounty issue is open before allowing submission
  */
-export async function validateBountyStatus(channelId, issueNumber) {
+export async function validateBountyOpen({ owner, repo, issue_number }) {
   try {
-    const issue = await getIssue(channelId, issueNumber);
-    const isOpen = issue?.state === "open";
-
-    return { isOpen, issue };
-  } catch (error) {
-    console.error("⚠️ Error validating bounty:", error);
-    return { isOpen: false };
+    const issue = await getIssue({ owner, repo, issue_number });
+    if (issue.state !== "open") {
+      return { valid: false, reason: "This bounty is closed." };
+    }
+    return { valid: true };
+  } catch (err) {
+    console.error("❌ Error validating bounty:", err);
+    return { valid: false, reason: "Could not verify bounty status." };
   }
 }
